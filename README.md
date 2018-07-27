@@ -36,6 +36,16 @@ In such an environment, it was clear that a simple tool which can be used as an 
 
 ### How it Works
 
+r0ak works by redirecting the execution flow of the Trusted Font Table in order to execute a custom comparator routine which schedules an Executive Work Item (`WORK_QUEUE_ITEM`) -- the underlying worker function and its parameter are what will eventually execute in a dedicated `ExpWorkerThread` at `PASSIVE_LEVEL`.
+
+When using the `--execute` option, this function and parameter are supplied by the user.
+
+When using `--write`, a custom gadget is used to modify arbitrary 32-bit values anywhere in kernel memory.
+
+When using `--read`, the write gadget is used to modify the system's HSTI buffer pointer and size (__**N.B.: This is destructive behavior in terms of any other applications that will request the HSTI data. As this is optional Windows behavior, and this tool is meant for emergency debugging/experimentation, this loss of data was considered acecptable**__). Then, the HSTI Query API is used to copy back into the tool's user-mode address space, and a hex dump is shown.
+
+Because only built-in, Microsoft-signed, Windows functionality is used, and all called functions are part of the KCFG bitmap, there is no violation of any security checks, and no debugging flags are required, or usage of 3rd party poorly-written drivers.
+
 ### FAQ
 
 #### Is this a bug/vulnerability in Windows?
@@ -47,7 +57,7 @@ No, as this tool (and underlying technique) requires a SYSTEM-level privileged t
 Of course! It's important to always file security issues with Microsoft even when no violation of privileged boundaries seemed to have occurred -- their teams of researchers and developers might find novel vectors and ways to reach certain code paths which an external researcher may not have thought of.
 
 As such, in November 2014, a security case was filed with the Microsoft Security Research Centre (MSRC) which responded:
-"[…] doesn't fall into the scope of a security issue we would address via our traditional Security Bulletin vehicle. It […] pre-supposes admin privileges -- a place where architecturally, we do not currently define a defensible security boundary. As such, we won't be pursuing this to fix."
+"*[…] doesn't fall into the scope of a security issue we would address via our traditional Security Bulletin vehicle. It […] pre-supposes admin privileges -- a place where architecturally, we do not currently define a defensible security boundary. As such, we won't be pursuing this to fix.*"
 
 Furthermore, in April 2015 at the Infiltrate conference, a talk titled [i["Insection:: AWEsomly Exploiting Shared Memory"[/i] was presented detailing this issue, including to Microsoft developers in attendance, which agreed this was currently out of scope of Windows's architectural security boundaries. This is because there are literally dozens -- if not more -- of other ways an Administrator can read/write/execute Ring 0 memory. This tool, and technique used, merely allow an easy commodification of one such vector, for purposes of debugging and troubleshooting system issues.
 
@@ -98,7 +108,7 @@ Secondly, due to the use cases and my own needs, the following restrictions appl
 
 Obviously, these limitations could be fixed by programmatically choosing a different approach, but they fit the needs of a command line tool and my use cases. Again, pull requests are accepted if others wish to contribute their own additions.
 
-Note that all execution (including execution of the `--read` and `--write` commands) occurs in the context of a System Worker Thread at PASSIVE_LEVEL. Therefore, user-mode addresses should not be passed in as parameters/arguments.
+Note that all execution (including execution of the `--read` and `--write` commands) occurs in the context of a System Worker Thread at `PASSIVE_LEVEL`. Therefore, user-mode addresses should not be passed in as parameters/arguments.
 
 ## Contributing
 
