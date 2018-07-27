@@ -10,10 +10,10 @@ http://www.github.com/ionescu007/r0ak
 Copyright (c) 2018 Alex Ionescu [@aionescu]
 http://www.windows-internals.com
 
-USAGE: Ring0.exe
-       [--execute <Address | module!function> <Argument>]
-       [--write   <Address | module!function> <Value>]
-       [--read    <Address | module!function> <Size>]
+USAGE: r0ak.exe
+       [--execute <Address | module.ext!function> <Argument>]
+       [--write   <Address | module.ext!function> <Value>]
+       [--read    <Address | module.ext!function> <Size>]
 ```
 
 ![Screenshot](r0ak-demo.png)
@@ -22,7 +22,7 @@ USAGE: Ring0.exe
 
 ### Motivation
 
-The Windows kernel is a rich environment in which hundreds of drivers execute on a typical system, and where thousands of variables containing global state are present. For advanced troubleshooting, IT experts will typically use tools such as the Windows Debugger (WinDbg), SysInternals tools, or write their own. Unfortunately, usage of these tools is getting increasingly hard, and they are themselves limited by their own access to Windows APIs and exposed features.
+The Windows kernel is a rich environment in which hundreds of drivers execute on a typical system, and where thousands of variables containing global state are present. For advanced troubleshooting, IT experts will typically use tools such as the Windows Debugger (WinDbg), SysInternals Tools, or write their own. Unfortunately, usage of these tools is getting increasingly hard, and they are themselves limited by their own access to Windows APIs and exposed features.
 
 Some of today's challenges include:
 
@@ -50,16 +50,16 @@ Because only built-in, Microsoft-signed, Windows functionality is used, and all 
 
 #### Is this a bug/vulnerability in Windows?
 
-No, as this tool (and underlying technique) requires a SYSTEM-level privileged token, which can only be obtained by a user running under the Administrator account, no security boundaries are being bypassed in order to achieve the effect. The behavior and utility of the tool is only possible due to the elevated/privileged security context of the Administrator account on Windows, and is understood to be a by-design behavior.
+No. Since this tool -- and the underlying technique -- require a SYSTEM-level privileged token, which can only be obtained by a user running under the Administrator account, no security boundaries are being bypassed in order to achieve the effect. The behavior and utility of the tool is only possible due to the elevated/privileged security context of the Administrator account on Windows, and is understood to be a by-design behavior.
 
 #### Was Microsoft notified about this behavior?
 
-Of course! It's important to always file security issues with Microsoft even when no violation of privileged boundaries seemed to have occurred -- their teams of researchers and developers might find novel vectors and ways to reach certain code paths which an external researcher may not have thought of.
+Of course! It's important to always file security issues with Microsoft even when no violation of privileged boundaries seems to have occurred -- their teams of researchers and developers might find novel vectors and ways to reach certain code paths which an external researcher may not have thought of.
 
 As such, in November 2014, a security case was filed with the Microsoft Security Research Centre (MSRC) which responded:
 "*[…] doesn't fall into the scope of a security issue we would address via our traditional Security Bulletin vehicle. It […] pre-supposes admin privileges -- a place where architecturally, we do not currently define a defensible security boundary. As such, we won't be pursuing this to fix.*"
 
-Furthermore, in April 2015 at the Infiltrate conference, a talk titled [i["Insection:: AWEsomly Exploiting Shared Memory"[/i] was presented detailing this issue, including to Microsoft developers in attendance, which agreed this was currently out of scope of Windows's architectural security boundaries. This is because there are literally dozens -- if not more -- of other ways an Administrator can read/write/execute Ring 0 memory. This tool, and technique used, merely allow an easy commodification of one such vector, for purposes of debugging and troubleshooting system issues.
+Furthermore, in April 2015 at the Infiltrate conference, a talk titled *Insection : AWEsomely Exploiting Shared Memory Objects* was presented detailing this issue, including to Microsoft developers in attendance, which agreed this was currently out of scope of Windows's architectural security boundaries. This is because there are literally dozens -- if not more -- of other ways an Administrator can read/write/execute Ring 0 memory. This tool merely allows an easy commodification of one such vector, for purposes of debugging and troubleshooting system issues.
 
 #### Can't this be packaged up as part of end-to-end attack/exploit kit?
 
@@ -71,7 +71,7 @@ Packaging this code up as a library would require carefully removing all interac
 * Require the Windows SDK/WDK installed on the target machine
 * Require a sensible _NT_SYMBOL_PATH environment variable to have been configured on the target machine, and for about 15MB of symbol data to be downloaded and cached as PDB files somewhere on the disk
 
-Attackers interested in using this particular -- versus very many others more cross-compatible, no-SYSTEM-right-requiring techniques -- already adapted their own techniques after April 2015 -- more than 3 years ago.
+Attackers interested in using this particular approach -- versus very many others more cross-compatible, no-SYSTEM-right-requiring techniques -- likely already adapted their own code based on the Proof-of-Concept from April 2015 -- more than 3 years ago.
 
 ## Usage
 
@@ -83,7 +83,7 @@ Alternatively, if you obtain these libraries on your own, you can modify the sou
 
 Usage of symbols requires an Internet connection, unless you have pre-cached them locally. Additionally, you should setup the `_NT_SYMBOL_PATH` variable pointing to an appropriate symbol server and cached location.
 
-It is assumed that an IT Expert or other troubleshooter which apparently has knowledge of appropriate kernel symbols and a need to read/write/execute kernel memory is already more than intimately familiar with the above setup requirements. Please do not file issues asking what the SDK is or how to set an environment variable.
+It is assumed that an IT Expert or other troubleshooter which apparently has a need to read/write/execute kernel memory (and has knowledge of the appropriate kernel varialbes to access) is already more than intimately familiar with the above setup requirements. Please do not file issues asking what the SDK is or how to set an environment variable.
 
 ### Use Cases
 
@@ -93,7 +93,7 @@ It is assumed that an IT Expert or other troubleshooter which apparently has kno
 
 * Wondering how big the kernel stacks are on your machine? Try looking at `ntoskrnl.exe!KeKernelStackSize`
 
-* Want to dump the system call table to look for hooks? Go print out `ntoskrnl!KiServiceTable`
+* Want to dump the system call table to look for hooks? Go print out `ntoskrnl.exe!KiServiceTable`
 
 These are only a few examples -- all Ring 0 addresses are accepted, either by `module!symbol` syntax or directly passing the kernel pointer if known. The Windows Symbol Engine is used to look these up.
 
