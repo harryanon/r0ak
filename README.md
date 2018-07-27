@@ -16,7 +16,7 @@ USAGE: Ring0.exe
        [--read    <Address | module!function> <Size>]
 ```
 
-![Screenshot](r0ak.png)
+![Screenshot](r0ak-demo.png)
 
 ## Introduction
 
