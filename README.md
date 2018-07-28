@@ -42,7 +42,7 @@ When using the `--execute` option, this function and parameter are supplied by t
 
 When using `--write`, a custom gadget is used to modify arbitrary 32-bit values anywhere in kernel memory.
 
-When using `--read`, the write gadget is used to modify the system's HSTI buffer pointer and size (__**N.B.: This is destructive behavior in terms of any other applications that will request the HSTI data. As this is optional Windows behavior, and this tool is meant for emergency debugging/experimentation, this loss of data was considered acecptable**__). Then, the HSTI Query API is used to copy back into the tool's user-mode address space, and a hex dump is shown.
+When using `--read`, the write gadget is used to modify the system's HSTI buffer pointer and size (__**N.B.: This is destructive behavior in terms of any other applications that will request the HSTI data. As this is optional Windows behavior, and this tool is meant for emergency debugging/experimentation, this loss of data was considered acceptable**__). Then, the HSTI Query API is used to copy back into the tool's user-mode address space, and a hex dump is shown.
 
 Because only built-in, Microsoft-signed, Windows functionality is used, and all called functions are part of the KCFG bitmap, there is no violation of any security checks, and no debugging flags are required, or usage of 3rd party poorly-written drivers.
 
@@ -83,7 +83,7 @@ Alternatively, if you obtain these libraries on your own, you can modify the sou
 
 Usage of symbols requires an Internet connection, unless you have pre-cached them locally. Additionally, you should setup the `_NT_SYMBOL_PATH` variable pointing to an appropriate symbol server and cached location.
 
-It is assumed that an IT Expert or other troubleshooter which apparently has a need to read/write/execute kernel memory (and has knowledge of the appropriate kernel varialbes to access) is already more than intimately familiar with the above setup requirements. Please do not file issues asking what the SDK is or how to set an environment variable.
+It is assumed that an IT Expert or other troubleshooter which apparently has a need to read/write/execute kernel memory (and has knowledge of the appropriate kernel variables to access) is already more than intimately familiar with the above setup requirements. Please do not file issues asking what the SDK is or how to set an environment variable.
 
 ### Use Cases
 
