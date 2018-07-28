@@ -29,14 +29,20 @@ Some of today's challenges include:
 * Windows 8 and later support Secure Boot, which prevents kernel debugging (including local debugging) and loading of test-signed driver code. This restricts troubleshooting tools to those that have a signed kernel-mode driver.
 * Even on systems without Secure Boot enabled, enabling local debugging or changing boot options which ease debugging capabilities will often trigger BitLocker's recovery mode.
 * Windows 10 Anniversary Update and later include much stricter driver signature requirements, which now enforce Microsoft EV Attestation Signing. This restricts the freedom of software developers as generic "read-write-everything" drivers are frowned upon.
-* Windows 10 Spring Update now includes customer-facing options for enabling Hyper Visor Code Integrity (HVCI) which further restricts allowable drivers and blacklists multiple 3rd party drivers that had "read-write-everything" capabilities due to poorly written interfaces and security risks.
-* Technologies like Kernel Control Flow Guard (KCFG) and HVCI with Second Level Address Translation (SLAT) are making traditional Ring 0 execution 'tricks' obsoleted, so a new approach is needed.
+* Windows 10 Spring Update now includes customer-facing options for enabling HyperVisor Code Integrity (HVCI) which further restricts allowable drivers and blacklists multiple 3rd party drivers that had "read-write-everything" capabilities due to poorly written interfaces and security risks.
+* Technologies like Supervisor Mode Execution Prevention (SMEP), Kernel Control Flow Guard (KCFG) and HVCI with Second Level Address Translation (SLAT) are making traditional Ring 0 execution 'tricks' obsoleted, so a new approach is needed.
 
 In such an environment, it was clear that a simple tool which can be used as an emergency band-aid/hotfix and to quickly troubleshoot kernel/system-level issues which may be apparent by analyzing kernel state might be valuable for the community.
 
 ### How it Works
 
-r0ak works by redirecting the execution flow of the Trusted Font Table in order to execute a custom comparator routine which schedules an Executive Work Item (`WORK_QUEUE_ITEM`) -- the underlying worker function and its parameter are what will eventually execute in a dedicated `ExpWorkerThread` at `PASSIVE_LEVEL`.
+#### Basic Architecture
+
+![Diagram](r0ak-archdiag.png)
+
+r0ak works by redirecting the execution flow of the window manager's trusted font validation checks when attempting to load a new font, by replacing the trusted font table's comparator routine with an alternate function which schedules an executive work item (`WORK_QUEUE_ITEM`) stored in a named pipe's write buffer (`NP_DATA_ENTRY`) -- the underlying worker function and its parameter are what will eventually be executed by a dedicated `ExpWorkerThread` at `PASSIVE_LEVEL`. An real-time Event Tracing for Windows (ETW) trace event is used to receive an asynchronous notification that the work item has finished executing, which makes it safe to tear down the structures, free the kernel-mode buffers, and restore normal operation.
+
+#### Supported Commands
 
 When using the `--execute` option, this function and parameter are supplied by the user.
 
